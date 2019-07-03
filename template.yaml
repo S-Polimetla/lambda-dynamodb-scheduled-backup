@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Sample Implementation to create daily backups of DynamoDB tables and deleting old backups.
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Runtime: nodejs8.10
+    Timeout: 10
+    Tags:
+      service: !Ref Service
+      stage: !Ref StageName
+
+Parameters:
+  Service:
+    Type: String
+    Description: The name of the service
+  S3BucketName:
+    Type: String
+    Description: The S3 Bucket name
+  daysToRetain:
+    Type: String
+    Description : Number of days to retain a backup after its creation
+    # Numbers are not supported by lambda environment variables
+    # https://docs.aws.amazon.com/lambda/latest/dg/API_Environment.html
+
+Resources:
+  CreateBackupFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/functions/create-backup/
+      Handler: index.handler
+      FunctionName: !Join [ '-', [ !Ref Service, 'create' ] ]
+      Role: !GetAtt BackupServiceRole.Arn
+      Timeout: 300
+
+  DeleteBackupFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/functions/delete-backup/
+      Handler: index.handler
+      Environment:
+        Variables:
+          DAYS_RETAIN: !Ref daysToRetain
+      FunctionName: !Join [ '-', [ !Ref Service, 'delete' ] ]
+      Role: !GetAtt BackupServiceRole.Arn
+      Timeout: 300
+
+  BackupScheduledRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "ScheduledRule"
+      # Everyday at 00:01
+      ScheduleExpression: "cron(1 0 * * ? *)"
+      State: "ENABLED"
+      Targets:
+        - Arn: !GetAtt CreateBackupFunction.Arn
+          Id: !Ref CreateBackupFunction
+        - Arn: !GetAtt DeleteBackupFunction.Arn
+          Id: !Ref DeleteBackupFunction
+
+  CreateBackupFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CreateBackupFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt BackupScheduledRule.Arn
+
+  DeleteBackupFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DeleteBackupFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt BackupScheduledRule.Arn
+
+  BackupServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: "BackupPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "dynamodb:ListTables"
+                  - "dynamodb:CreateBackup"
+                  - "dynamodb:ListBackups"
+                  - "dynamodb:DeleteBackup"
+                Resource:
+                  - "*"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole

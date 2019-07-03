@@ -1,0 +1,7 @@
+{
+  "Parameters": {
+    "Service": "backup",
+    "S3BucketName": "s3://<s3-bucket-name>",
+    "daysToRetain": "90"
+  }
+}
