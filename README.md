@@ -13,3 +13,7 @@ A lambda function is run every day at 00.01 to create backup all the existing ta
 The backups are kept for 90 days in this example. This can be configured by the config file. 
 
 A lambda function is run every day also at 00.01 to list all the backups which are over 90 days old and these backups will be deleted. 
+
+## How to Deploy
+This microservice can be deployed to AWS CodePipeline using the following CloudFormation template
+`https://github.com/S-Polimetla/cloud-formation-templates/blob/master/build-pipeline.yaml`
