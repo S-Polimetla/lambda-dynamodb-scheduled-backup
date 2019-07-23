@@ -5,7 +5,7 @@ exports.handler = async (event) => {
   try {
     // List All existing tables
     let tableNames = await this.listTables();
-    if (!tableNames) {
+    if (tableNames) {
       await this.createBackupAll(tableNames);
     }
   } catch (error) {
