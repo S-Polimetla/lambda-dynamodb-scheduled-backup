@@ -6,12 +6,13 @@
   "repository": "https://github.com/S-Polimetla/lambda-dynamodb-scheduled-backup",
   "author": "S-Polimetla",
   "devDependencies": {
-    "aws-sdk": "^2.267.1",
-    "eslint": "^5.1.0",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-plugin-import": "^2.13.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.8.0",
-    "eslint-plugin-standard": "^3.1.0"
+    "aws-sdk": "^2.498.0",
+    "chai": "^4.2.0",
+    "eslint": "^6.3.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^9.2.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
   }
 }
