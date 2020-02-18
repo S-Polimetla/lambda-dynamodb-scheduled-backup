@@ -4,11 +4,10 @@ Description: Sample Implementation to create daily backups of DynamoDB tables an
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Runtime: nodejs8.10
+    Runtime: nodejs12.x
     Timeout: 10
     Tags:
-      service: !Ref Service
-      stage: !Ref StageName
+      service: !Ref Service      
 
 Parameters:
   Service:
